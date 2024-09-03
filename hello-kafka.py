@@ -55,6 +55,10 @@ def load_connections():
                     "group.id": "t4",
                     "enable.auto.commit": False,
                     "auto.offset.reset": "beginning",
+                    "security.protocol": "sasl_plaintext",
+                    "sasl.username": "rosario",
+                    "sasl.password": "rosario"
+
                 }
             ),
         )
