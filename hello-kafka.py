@@ -56,9 +56,9 @@ def load_connections():
                     "enable.auto.commit": False,
                     "auto.offset.reset": "beginning",
                     "security.protocol": "sasl_plaintext",
+                    "sasl.mechanism": "PLAIN",
                     "sasl.username": "rosario",
                     "sasl.password": "rosario"
-
                 }
             ),
         )
