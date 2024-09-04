@@ -59,11 +59,13 @@ def uploadtomongo(ti, **context):
     context = get_current_context()
     ti = context["ti"]
     data = ti.xcom_pull(key="transactions_from_kafka", task_ids="consume_from_topic_2_b")
-    for i in data:
-        i['timestamp'] = datetime.now()
 
     if not data:
         return
+
+    for i in data:
+        i['timestamp'] = datetime.now()
+
 
     try:
         hook = MongoHook(mongo_conn_id='atlas-mongo-db')
