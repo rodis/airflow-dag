@@ -50,13 +50,16 @@ def consumer_function_batch(messages, prefix=None):
         m.append(value)
     context = get_current_context()
     ti = context["ti"]
-    ti.xcom_push(key="consume_from_topic_2_b", value=m)
+    ti.xcom_push(key="transactions_from_kafka", value=m)
     return
 
 
 
 def uploadtomongo(ti, **context):
-    data = context["result"]
+    context = get_current_context()
+    ti = context["ti"]
+    data = ti.xcom_pull(key="transactions_from_kafka", task_ids="consume_from_topic_2_b")
+    
     if not data:
         return
 
