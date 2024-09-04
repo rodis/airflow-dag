@@ -49,7 +49,7 @@ def consumer_function_batch(messages, prefix=None):
     context = get_current_context()
     ti = context["ti"]
     ti.xcom_push(key="consume_from_topic_2_b", value=messages)
-    return messages
+    return
 
 
 
