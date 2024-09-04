@@ -42,13 +42,15 @@ default_args = {
 consumer_logger = logging.getLogger("airflow")
 
 def consumer_function_batch(messages, prefix=None):
+    m = []
     for message in messages:
         #key = json.loads(message.key())
         value = json.loads(message.value())
         consumer_logger.info("%s %s @ %s; %s", prefix, message.topic(), message.offset(), value)
+        m.append(value)
     context = get_current_context()
     ti = context["ti"]
-    ti.xcom_push(key="consume_from_topic_2_b", value=messages)
+    ti.xcom_push(key="consume_from_topic_2_b", value=m)
     return
 
 
