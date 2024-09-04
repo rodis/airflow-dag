@@ -25,7 +25,7 @@ from airflow import DAG
 
 # This is just for setting up connections in the demo - you should use standard
 # methods for setting these connections in production
-from airflow.operators.python import PythonOperator
+from airflow.operators.python import PythonOperator, get_current_context
 from airflow.providers.apache.kafka.operators.consume import ConsumeFromTopicOperator
 from airflow.providers.mongo.hooks.mongo import MongoHook
 
@@ -46,6 +46,9 @@ def consumer_function_batch(messages, prefix=None):
         #key = json.loads(message.key())
         value = json.loads(message.value())
         consumer_logger.info("%s %s @ %s; %s", prefix, message.topic(), message.offset(), value)
+    context = get_current_context()
+    ti = context["ti"]
+    ti.xcom_push(key="consume_from_topic_2_b", value=messages)
     return messages
 
 
