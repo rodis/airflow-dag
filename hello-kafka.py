@@ -27,8 +27,8 @@ from airflow import DAG
 # methods for setting these connections in production
 from airflow.operators.python import PythonOperator
 from airflow.providers.apache.kafka.operators.consume import ConsumeFromTopicOperator
-from airflow.providers.apache.kafka.operators.produce import ProduceToTopicOperator
-from airflow.providers.apache.kafka.sensors.kafka import AwaitMessageSensor
+from airflow.providers.mongo.hooks.mongo import MongoHook
+
 
 default_args = {
     "owner": "airflow",
@@ -36,34 +36,8 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
-    "retry_delay": timedelta(minutes=5),
+    "retry_delay": timedelta(minutes=1),
 }
-
-
-#def load_connections():
-    ## Connections needed for this example dag to finish
-    #from airflow.models import Connection
-    #from airflow.utils import db
-
-    #db.merge_conn(
-        #Connection(
-            #conn_id="t4",
-            #conn_type="kafka",
-            #extra=json.dumps(
-                #{
-                    #"bootstrap.servers": "kafka-controller-0.kafka-controller-headless.kafka.svc.cluster.local:9092,kafka-controller-1.kafka-controller-headless.kafka.svc.cluster.local:9092,kafka-controller-2.kafka-controller-headless.kafka.svc.cluster.local:9092",
-                    #"group.id": "t4",
-                    #"enable.auto.commit": False,
-                    #"auto.offset.reset": "beginning",
-                    #"security.protocol": "sasl_plaintext",
-                    #"sasl.mechanism": "PLAIN",
-                    #"sasl.username": "rosario",
-                    #"sasl.password": "rosario"
-                #}
-            #),
-        #)
-    #)
-
 
 
 def producer_function():
@@ -98,6 +72,17 @@ def hello_kafka():
     print("Hello Kafka !")
     return
 
+def uploadtomongo(ti, **context):
+    try:
+        hook = MongoHook(mongo_conn_id='atlas-mongo-db')
+        client = hook.get_conn()
+        db = client.personal
+        transactions=db.transactions
+        print(f"Connected to MongoDB - {client.server_info()}")
+        d=json.loads(context["result"])
+        transactions.insert_one(d)
+    except Exception as e:
+        print("Error connecting to MongoDB -- {e}")
 
 with DAG(
     "kafka-example",
@@ -108,9 +93,7 @@ with DAG(
     catchup=False,
     tags=["example"],
 ) as dag:
-    #t0 = PythonOperator(task_id="load_connections", python_callable=load_connections)
-
-    t4 = ConsumeFromTopicOperator(
+    t1 = ConsumeFromTopicOperator(
         kafka_config_id="k8s-kafka",
         task_id="consume_from_topic_2_b",
         topics=["transactions"],
@@ -120,8 +103,14 @@ with DAG(
         max_batch_size=10,
     )
 
-    t4.doc_md = "Does the same thing as the t2 task, but passes the callable directly"
+    t1.doc_md = "Does the same thing as the t2 task, but passes the callable directly"
     "instead of using the string notation."
 
-    #t0 >> t4
-    t4
+    t2 = PythonOperator(
+        task_id='upload-mongodb',
+        python_callable=uploadtomongo,
+        op_kwargs={"result": t1.output},
+        dag=dag
+        )
+
+    t1 >> t2
