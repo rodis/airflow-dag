@@ -82,7 +82,7 @@ def uploadtomongo(ti, **context):
         d=json.loads(context["result"])
         transactions.insert_one(d)
     except Exception as e:
-        print("Error connecting to MongoDB -- {e}")
+        print(f"Error connecting to MongoDB -- {e}")
 
 with DAG(
     "kafka-example",
