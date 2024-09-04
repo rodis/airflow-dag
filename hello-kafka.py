@@ -39,38 +39,16 @@ default_args = {
     "retry_delay": timedelta(minutes=1),
 }
 
-
-def producer_function():
-    for i in range(20):
-        yield (json.dumps(i), json.dumps(i + 1))
-
-
 consumer_logger = logging.getLogger("airflow")
-
-
-def consumer_function(message, prefix=None):
-    key = json.loads(message.key())
-    value = json.loads(message.value())
-    consumer_logger.info("%s %s @ %s; %s : %s", prefix, message.topic(), message.offset(), key, value)
-    return
-
 
 def consumer_function_batch(messages, prefix=None):
     for message in messages:
         #key = json.loads(message.key())
         value = json.loads(message.value())
         consumer_logger.info("%s %s @ %s; %s", prefix, message.topic(), message.offset(), value)
-    return messages
-
-
-def await_function(message):
-    if json.loads(message.value()) % 5 == 0:
-        return f" Got the following message: {json.loads(message.value())}"
-
-
-def hello_kafka():
-    print("Hello Kafka !")
     return
+
+
 
 def uploadtomongo(ti, **context):
     data = context["result"]
@@ -103,8 +81,9 @@ with DAG(
         topics=["transactions"],
         apply_function_batch=functools.partial(consumer_function_batch, prefix="consumed:::"),
         commit_cadence="end_of_batch",
-        max_messages=30,
-        max_batch_size=10,
+        max_messages=200,
+        max_batch_size=50,
+        do_xcom_push=True,
     )
 
     t1.doc_md = "Does the same thing as the t2 task, but passes the callable directly"
