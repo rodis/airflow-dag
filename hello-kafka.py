@@ -73,7 +73,7 @@ def hello_kafka():
     return
 
 def uploadtomongo(ti, **context):
-    data = json.loads(context["result"])
+    data = context["result"]
     if not data:
         return
 
@@ -83,7 +83,7 @@ def uploadtomongo(ti, **context):
         db = client.personal
         transactions=db.transactions
         print(f"Connected to MongoDB - {client.server_info()}")
-        transactions.insert_one(data)
+        transactions.insert_one(json.loads(data))
     except Exception as e:
         print(f"Error connecting to MongoDB -- {e}")
         raise
