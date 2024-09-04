@@ -73,16 +73,20 @@ def hello_kafka():
     return
 
 def uploadtomongo(ti, **context):
+    data = json.loads(context["result"])
+    if not data:
+        return
+
     try:
         hook = MongoHook(mongo_conn_id='atlas-mongo-db')
         client = hook.get_conn()
         db = client.personal
         transactions=db.transactions
         print(f"Connected to MongoDB - {client.server_info()}")
-        d=json.loads(context["result"])
-        transactions.insert_one(d)
+        transactions.insert_one(data)
     except Exception as e:
         print(f"Error connecting to MongoDB -- {e}")
+        raise
 
 with DAG(
     "kafka-example",
