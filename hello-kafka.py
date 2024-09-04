@@ -40,29 +40,29 @@ default_args = {
 }
 
 
-def load_connections():
-    # Connections needed for this example dag to finish
-    from airflow.models import Connection
-    from airflow.utils import db
+#def load_connections():
+    ## Connections needed for this example dag to finish
+    #from airflow.models import Connection
+    #from airflow.utils import db
 
-    db.merge_conn(
-        Connection(
-            conn_id="t4",
-            conn_type="kafka",
-            extra=json.dumps(
-                {
-                    "bootstrap.servers": "kafka-controller-0.kafka-controller-headless.kafka.svc.cluster.local:9092,kafka-controller-1.kafka-controller-headless.kafka.svc.cluster.local:9092,kafka-controller-2.kafka-controller-headless.kafka.svc.cluster.local:9092",
-                    "group.id": "t4",
-                    "enable.auto.commit": False,
-                    "auto.offset.reset": "beginning",
-                    "security.protocol": "sasl_plaintext",
-                    "sasl.mechanism": "PLAIN",
-                    "sasl.username": "rosario",
-                    "sasl.password": "rosario"
-                }
-            ),
-        )
-    )
+    #db.merge_conn(
+        #Connection(
+            #conn_id="t4",
+            #conn_type="kafka",
+            #extra=json.dumps(
+                #{
+                    #"bootstrap.servers": "kafka-controller-0.kafka-controller-headless.kafka.svc.cluster.local:9092,kafka-controller-1.kafka-controller-headless.kafka.svc.cluster.local:9092,kafka-controller-2.kafka-controller-headless.kafka.svc.cluster.local:9092",
+                    #"group.id": "t4",
+                    #"enable.auto.commit": False,
+                    #"auto.offset.reset": "beginning",
+                    #"security.protocol": "sasl_plaintext",
+                    #"sasl.mechanism": "PLAIN",
+                    #"sasl.username": "rosario",
+                    #"sasl.password": "rosario"
+                #}
+            #),
+        #)
+    #)
 
 
 
@@ -108,10 +108,10 @@ with DAG(
     catchup=False,
     tags=["example"],
 ) as dag:
-    t0 = PythonOperator(task_id="load_connections", python_callable=load_connections)
+    #t0 = PythonOperator(task_id="load_connections", python_callable=load_connections)
 
     t4 = ConsumeFromTopicOperator(
-        kafka_config_id="t4",
+        kafka_config_id="k8s-kafka",
         task_id="consume_from_topic_2_b",
         topics=["transactions"],
         apply_function_batch=functools.partial(consumer_function_batch, prefix="consumed:::"),
@@ -123,4 +123,5 @@ with DAG(
     t4.doc_md = "Does the same thing as the t2 task, but passes the callable directly"
     "instead of using the string notation."
 
-    t0 >> t4
+    #t0 >> t4
+    t4
