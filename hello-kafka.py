@@ -59,7 +59,7 @@ def uploadtomongo(ti, **context):
     context = get_current_context()
     ti = context["ti"]
     data = ti.xcom_pull(key="transactions_from_kafka", task_ids="consume_from_topic_2_b")
-    
+
     if not data:
         return
 
@@ -69,7 +69,7 @@ def uploadtomongo(ti, **context):
         db = client.personal
         transactions=db.transactions
         print(f"Connected to MongoDB - {client.server_info()}")
-        transactions.insert_one(json.loads(data))
+        transactions.insert_one(data)
     except Exception as e:
         print(f"Error connecting to MongoDB -- {e}")
         raise
