@@ -69,7 +69,7 @@ def uploadtomongo(ti, **context):
         db = client.personal
         transactions=db.transactions
         print(f"Connected to MongoDB - {client.server_info()}")
-        transactions.insert_one(data)
+        transactions.insert_many(data)
     except Exception as e:
         print(f"Error connecting to MongoDB -- {e}")
         raise
